@@ -8,6 +8,7 @@ namespace AkkaTest.Actors
     public class DeviceGroup : UntypedActor
     {
         private Dictionary<string, IActorRef> deviceIdToActor = new Dictionary<string, IActorRef>();
+        private Dictionary<IActorRef, string> actorToDeviceId = new Dictionary<IActorRef, string>();
 
         public DeviceGroup(string groupId)
         {
@@ -33,12 +34,23 @@ namespace AkkaTest.Actors
                     {
                         Log.Info($"Creating device actor for {trackMsg.DeviceId}");
                         var deviceActor = Context.ActorOf(Device.Props(trackMsg.GroupId, trackMsg.DeviceId), $"device-{trackMsg.DeviceId}");
+                        Context.Watch(deviceActor);
+                        actorToDeviceId.Add(deviceActor, trackMsg.DeviceId);
                         deviceIdToActor.Add(trackMsg.DeviceId, deviceActor);
                         deviceActor.Forward(trackMsg);
                     }
                     break;
                 case RequestTrackDevice trackMsg:
                     Log.Warning($"Ignoring TrackDevice request for {trackMsg.GroupId}. This actor is responsible for {GroupId}.");
+                    break;
+                case RequestDeviceList deviceList:
+                    Sender.Tell(new ReplyDeviceList(deviceList.RequestId, new HashSet<string>(deviceIdToActor.Keys)));
+                    break;
+                case Terminated t:
+                    var deviceId = actorToDeviceId[t.ActorRef];
+                    Log.Info($"Device actor for {deviceId} has been terminated");
+                    actorToDeviceId.Remove(t.ActorRef);
+                    deviceIdToActor.Remove(deviceId);
                     break;
             }
         }

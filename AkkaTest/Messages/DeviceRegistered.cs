@@ -6,7 +6,13 @@ namespace AkkaTest.Messages
 {
     public sealed class DeviceRegistered
     {
-        public static DeviceRegistered Instance { get; } = new DeviceRegistered();
-        private DeviceRegistered() { }
+        public string GroupId { get; private set; }
+        public string DeviceId { get; private set; }
+
+        public DeviceRegistered(string groupId, string deviceId)
+        {
+            GroupId = groupId;
+            DeviceId = deviceId;
+        }
     }
 }

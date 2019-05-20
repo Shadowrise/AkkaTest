@@ -26,7 +26,7 @@ namespace AkkaTest.Actors
             switch (message)
             {
                 case RequestTrackDevice req when req.GroupId.Equals(GroupId) && req.DeviceId.Equals(DeviceId):
-                    Sender.Tell(DeviceRegistered.Instance);
+                    Sender.Tell(new DeviceRegistered(GroupId, DeviceId));
                     break;
                 case RequestTrackDevice req:
                     Log.Warning($"Ignoring TrackDevice request for {req.GroupId}-{req.DeviceId}.This actor is responsible for {GroupId}-{DeviceId}.");
